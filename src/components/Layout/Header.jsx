@@ -1,8 +1,10 @@
-function Header() {
+function Header({ theme, onToggleTheme }) {
   return (
     <header className="app-header">
       <h1>Bookmark Manager</h1>
-      <button>Toggle Theme</button>
+      <button onClick={onToggleTheme}>
+        {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
+      </button>
     </header>
   );
 }

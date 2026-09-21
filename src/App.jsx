@@ -17,21 +17,51 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("All");
   const [sortOption, setSortOption] = useState("newest");
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
 
+  // Initial load: localStorage first, fallback to bookmarks.json
   useEffect(() => {
-    fetch("/data/bookmarks.json")
-      .then((res) => res.json())
-      .then((data) => {
-        setTimeout(() => {
-          setBookmarks(data);
-          setIsLoading(false);
-        }, 800);
-      })
-      .catch((err) => {
-        console.error("Failed to load bookmarks:", err);
+    const stored = localStorage.getItem("bookmarks");
+
+    if (stored) {
+      setTimeout(() => {
+        setBookmarks(JSON.parse(stored));
         setIsLoading(false);
-      });
+      }, 800);
+    } else {
+      fetch("/data/bookmarks.json")
+        .then((res) => res.json())
+        .then((data) => {
+          setTimeout(() => {
+            setBookmarks(data);
+            setIsLoading(false);
+          }, 800);
+        })
+        .catch((err) => {
+          console.error("Failed to load bookmarks:", err);
+          setIsLoading(false);
+        });
+    }
   }, []);
+
+  // Sync bookmarks to localStorage whenever they change (after initial load)
+  useEffect(() => {
+    if (!isLoading) {
+      localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
+    }
+  }, [bookmarks, isLoading]);
+
+  // Sync theme to localStorage + apply to document
+  useEffect(() => {
+    localStorage.setItem("theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  function toggleTheme() {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  }
 
   function handleAddBookmark(newBookmark) {
     setBookmarks((prev) => [...prev, newBookmark]);
@@ -78,14 +108,10 @@ function App() {
     setEditingBookmark(null);
   }
 
-  // ---- Derived data, computed fresh every render ----
-
-  // 1. Filter by view (all vs archived)
   const viewFiltered = bookmarks.filter((b) =>
     currentView === "archived" ? b.archived : !b.archived
   );
 
-  // 2. Filter by search term (title + description)
   const searchFiltered = viewFiltered.filter((b) => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return true;
@@ -95,12 +121,10 @@ function App() {
     );
   });
 
-  // 3. Filter by selected tag
   const tagFiltered = searchFiltered.filter((b) =>
     selectedTag === "All" ? true : b.tags.includes(selectedTag)
   );
 
-  // 4. Sort (pinned always first, then by chosen sort)
   const sorted = [...tagFiltered].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
 
@@ -118,14 +142,12 @@ function App() {
     }
   });
 
-  // 5. All unique tags, for the FilterBar
   const allTags = ["All", ...new Set(bookmarks.flatMap((b) => b.tags))];
-
   const visibleBookmarks = sorted;
 
   return (
     <div className="app">
-      <Header />
+      <Header theme={theme} onToggleTheme={toggleTheme} />
       <div className="app-body">
         <Sidebar currentView={currentView} onChangeView={setCurrentView} />
         <main className="app-main">

@@ -1,6 +1,6 @@
 import TagList from "./TagList";
 
-function BookmarkCard({ bookmark }) {
+function BookmarkCard({ bookmark, onEdit, onDelete }) {
   return (
     <div className="bookmark-card">
       <h3>{bookmark.title}</h3>
@@ -9,9 +9,9 @@ function BookmarkCard({ bookmark }) {
       <TagList tags={bookmark.tags} />
       <div className="card-actions">
         <button>Pin</button>
-        <button>Edit</button>
+        <button onClick={() => onEdit(bookmark)}>Edit</button>
         <button>Archive</button>
-        <button>Delete</button>
+        <button onClick={() => onDelete(bookmark.id)}>Delete</button>
       </div>
     </div>
   );

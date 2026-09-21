@@ -12,6 +12,7 @@ function App() {
   const [bookmarks, setBookmarks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingBookmark, setEditingBookmark] = useState(null);
 
   useEffect(() => {
     fetch("/data/bookmarks.json")
@@ -30,7 +31,36 @@ function App() {
 
   function handleAddBookmark(newBookmark) {
     setBookmarks((prev) => [...prev, newBookmark]);
+    closeModal();
+  }
+
+  function handleUpdateBookmark(updatedBookmark) {
+    setBookmarks((prev) =>
+      prev.map((b) => (b.id === updatedBookmark.id ? updatedBookmark : b))
+    );
+    closeModal();
+  }
+
+  function handleDeleteBookmark(id) {
+    const confirmed = window.confirm("Delete this bookmark?");
+    if (!confirmed) return;
+
+    setBookmarks((prev) => prev.filter((b) => b.id !== id));
+  }
+
+  function openAddModal() {
+    setEditingBookmark(null);
+    setIsModalOpen(true);
+  }
+
+  function openEditModal(bookmark) {
+    setEditingBookmark(bookmark);
+    setIsModalOpen(true);
+  }
+
+  function closeModal() {
     setIsModalOpen(false);
+    setEditingBookmark(null);
   }
 
   return (
@@ -42,19 +72,27 @@ function App() {
           <SearchBar />
           <FilterBar />
           <SortSelect />
-          <button onClick={() => setIsModalOpen(true)}>+ Add Bookmark</button>
+          <button onClick={openAddModal}>+ Add Bookmark</button>
 
           {isLoading ? (
             <p>Loading bookmarks...</p>
           ) : (
-            <BookmarkList bookmarks={bookmarks} />
+            <BookmarkList
+              bookmarks={bookmarks}
+              onEdit={openEditModal}
+              onDelete={handleDeleteBookmark}
+            />
           )}
         </main>
       </div>
 
       {isModalOpen && (
-        <Modal onClose={() => setIsModalOpen(false)}>
-          <BookmarkForm onSave={handleAddBookmark} />
+        <Modal onClose={closeModal}>
+          <BookmarkForm
+            key={editingBookmark ? editingBookmark.id : "new"}
+            initialData={editingBookmark}
+            onSave={editingBookmark ? handleUpdateBookmark : handleAddBookmark}
+          />
         </Modal>
       )}
     </div>

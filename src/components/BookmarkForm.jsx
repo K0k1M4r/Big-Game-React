@@ -1,11 +1,11 @@
 import { useState } from "react";
 
-function BookmarkForm({ onSave }) {
+function BookmarkForm({ onSave, initialData }) {
   const [form, setForm] = useState({
-    title: "",
-    url: "",
-    description: "",
-    tags: "",
+    title: initialData?.title || "",
+    url: initialData?.url || "",
+    description: initialData?.description || "",
+    tags: initialData?.tags.join(", ") || "",
   });
 
   const [errors, setErrors] = useState({});
@@ -59,19 +59,19 @@ function BookmarkForm({ onSave }) {
       return;
     }
 
-    const newBookmark = {
-      id: crypto.randomUUID(),
+    const bookmarkData = {
+      id: initialData ? initialData.id : crypto.randomUUID(),
       title: form.title.trim(),
       url: form.url.trim(),
       description: form.description.trim(),
       tags: tagList,
-      pinned: false,
-      archived: false,
-      favorite: false,
-      createdAt: new Date().toISOString(),
+      pinned: initialData ? initialData.pinned : false,
+      archived: initialData ? initialData.archived : false,
+      favorite: initialData ? initialData.favorite : false,
+      createdAt: initialData ? initialData.createdAt : new Date().toISOString(),
     };
 
-    onSave(newBookmark);
+    onSave(bookmarkData);
   }
 
   return (
@@ -118,7 +118,7 @@ function BookmarkForm({ onSave }) {
         {errors.tags && <span className="error">{errors.tags}</span>}
       </div>
 
-      <button type="submit">Save</button>
+      <button type="submit">{initialData ? "Save Changes" : "Save"}</button>
     </form>
   );
 }

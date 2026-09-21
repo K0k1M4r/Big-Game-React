@@ -1,8 +1,12 @@
 import BookmarkCard from "./BookmarkCard";
 
-function BookmarkList({ bookmarks, onEdit, onDelete }) {
+function BookmarkList({ bookmarks, onEdit, onDelete, onTogglePin, onToggleArchive, currentView }) {
   if (bookmarks.length === 0) {
-    return <p className="empty-state">No bookmarks yet. Add one to get started!</p>;
+    const message =
+      currentView === "archived"
+        ? "No archived bookmarks."
+        : "No bookmarks yet. Add one to get started!";
+    return <p className="empty-state">{message}</p>;
   }
 
   return (
@@ -13,6 +17,8 @@ function BookmarkList({ bookmarks, onEdit, onDelete }) {
           bookmark={bookmark}
           onEdit={onEdit}
           onDelete={onDelete}
+          onTogglePin={onTogglePin}
+          onToggleArchive={onToggleArchive}
         />
       ))}
     </div>

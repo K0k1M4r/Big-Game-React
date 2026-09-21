@@ -13,6 +13,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState(null);
+  const [currentView, setCurrentView] = useState("all"); // "all" | "archived"
 
   useEffect(() => {
     fetch("/data/bookmarks.json")
@@ -48,6 +49,18 @@ function App() {
     setBookmarks((prev) => prev.filter((b) => b.id !== id));
   }
 
+  function handleTogglePin(id) {
+    setBookmarks((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, pinned: !b.pinned } : b))
+    );
+  }
+
+  function handleToggleArchive(id) {
+    setBookmarks((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, archived: !b.archived } : b))
+    );
+  }
+
   function openAddModal() {
     setEditingBookmark(null);
     setIsModalOpen(true);
@@ -63,11 +76,16 @@ function App() {
     setEditingBookmark(null);
   }
 
+  // Derived, not stored: filter by view, then sort pinned-first
+  const visibleBookmarks = bookmarks
+    .filter((b) => (currentView === "archived" ? b.archived : !b.archived))
+    .sort((a, b) => (b.pinned === a.pinned ? 0 : b.pinned ? 1 : -1));
+
   return (
     <div className="app">
       <Header />
       <div className="app-body">
-        <Sidebar />
+        <Sidebar currentView={currentView} onChangeView={setCurrentView} />
         <main className="app-main">
           <SearchBar />
           <FilterBar />
@@ -78,9 +96,12 @@ function App() {
             <p>Loading bookmarks...</p>
           ) : (
             <BookmarkList
-              bookmarks={bookmarks}
+              bookmarks={visibleBookmarks}
               onEdit={openEditModal}
               onDelete={handleDeleteBookmark}
+              onTogglePin={handleTogglePin}
+              onToggleArchive={handleToggleArchive}
+              currentView={currentView}
             />
           )}
         </main>

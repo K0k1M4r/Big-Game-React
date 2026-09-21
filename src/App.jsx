@@ -11,13 +11,12 @@ import BookmarkForm from "./components/BookmarkForm";
 function App() {
   const [bookmarks, setBookmarks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const showModal = false; // still dummy for now
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetch("/data/bookmarks.json")
       .then((res) => res.json())
       .then((data) => {
-        // simulate a real network delay so the loading state is visible
         setTimeout(() => {
           setBookmarks(data);
           setIsLoading(false);
@@ -27,7 +26,12 @@ function App() {
         console.error("Failed to load bookmarks:", err);
         setIsLoading(false);
       });
-  }, []); // empty array = run once, on mount
+  }, []);
+
+  function handleAddBookmark(newBookmark) {
+    setBookmarks((prev) => [...prev, newBookmark]);
+    setIsModalOpen(false);
+  }
 
   return (
     <div className="app">
@@ -38,6 +42,7 @@ function App() {
           <SearchBar />
           <FilterBar />
           <SortSelect />
+          <button onClick={() => setIsModalOpen(true)}>+ Add Bookmark</button>
 
           {isLoading ? (
             <p>Loading bookmarks...</p>
@@ -46,9 +51,10 @@ function App() {
           )}
         </main>
       </div>
-      {showModal && (
-        <Modal>
-          <BookmarkForm />
+
+      {isModalOpen && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <BookmarkForm onSave={handleAddBookmark} />
         </Modal>
       )}
     </div>

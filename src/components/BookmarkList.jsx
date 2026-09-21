@@ -1,11 +1,15 @@
 import BookmarkCard from "./BookmarkCard";
 
-function BookmarkList({ bookmarks, onEdit, onDelete, onTogglePin, onToggleArchive, currentView }) {
+function BookmarkList({ bookmarks, onEdit, onDelete, onTogglePin, onToggleArchive, currentView, searchTerm }) {
   if (bookmarks.length === 0) {
-    const message =
-      currentView === "archived"
-        ? "No archived bookmarks."
-        : "No bookmarks yet. Add one to get started!";
+    let message = "No bookmarks yet. Add one to get started!";
+
+    if (searchTerm.trim()) {
+      message = `No bookmarks match "${searchTerm}".`;
+    } else if (currentView === "archived") {
+      message = "No archived bookmarks.";
+    }
+
     return <p className="empty-state">{message}</p>;
   }
 

@@ -1,10 +1,14 @@
-function FilterBar() {
-  const dummyTags = ["All", "react", "docs", "javascript", "design"];
-
+function FilterBar({ tags, selectedTag, onSelectTag }) {
   return (
     <div className="filter-bar">
-      {dummyTags.map((tag) => (
-        <button key={tag}>{tag}</button>
+      {tags.map((tag) => (
+        <button
+          key={tag}
+          className={tag === selectedTag ? "active" : ""}
+          onClick={() => onSelectTag(tag)}
+        >
+          {tag}
+        </button>
       ))}
     </div>
   );

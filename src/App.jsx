@@ -13,7 +13,10 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState(null);
-  const [currentView, setCurrentView] = useState("all"); // "all" | "archived"
+  const [currentView, setCurrentView] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTag, setSelectedTag] = useState("All");
+  const [sortOption, setSortOption] = useState("newest");
 
   useEffect(() => {
     fetch("/data/bookmarks.json")
@@ -45,7 +48,6 @@ function App() {
   function handleDeleteBookmark(id) {
     const confirmed = window.confirm("Delete this bookmark?");
     if (!confirmed) return;
-
     setBookmarks((prev) => prev.filter((b) => b.id !== id));
   }
 
@@ -76,10 +78,50 @@ function App() {
     setEditingBookmark(null);
   }
 
-  // Derived, not stored: filter by view, then sort pinned-first
-  const visibleBookmarks = bookmarks
-    .filter((b) => (currentView === "archived" ? b.archived : !b.archived))
-    .sort((a, b) => (b.pinned === a.pinned ? 0 : b.pinned ? 1 : -1));
+  // ---- Derived data, computed fresh every render ----
+
+  // 1. Filter by view (all vs archived)
+  const viewFiltered = bookmarks.filter((b) =>
+    currentView === "archived" ? b.archived : !b.archived
+  );
+
+  // 2. Filter by search term (title + description)
+  const searchFiltered = viewFiltered.filter((b) => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return true;
+    return (
+      b.title.toLowerCase().includes(term) ||
+      b.description.toLowerCase().includes(term)
+    );
+  });
+
+  // 3. Filter by selected tag
+  const tagFiltered = searchFiltered.filter((b) =>
+    selectedTag === "All" ? true : b.tags.includes(selectedTag)
+  );
+
+  // 4. Sort (pinned always first, then by chosen sort)
+  const sorted = [...tagFiltered].sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+
+    switch (sortOption) {
+      case "newest":
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      case "oldest":
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      case "az":
+        return a.title.localeCompare(b.title);
+      case "za":
+        return b.title.localeCompare(a.title);
+      default:
+        return 0;
+    }
+  });
+
+  // 5. All unique tags, for the FilterBar
+  const allTags = ["All", ...new Set(bookmarks.flatMap((b) => b.tags))];
+
+  const visibleBookmarks = sorted;
 
   return (
     <div className="app">
@@ -87,9 +129,13 @@ function App() {
       <div className="app-body">
         <Sidebar currentView={currentView} onChangeView={setCurrentView} />
         <main className="app-main">
-          <SearchBar />
-          <FilterBar />
-          <SortSelect />
+          <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+          <FilterBar
+            tags={allTags}
+            selectedTag={selectedTag}
+            onSelectTag={setSelectedTag}
+          />
+          <SortSelect sortOption={sortOption} onSortChange={setSortOption} />
           <button onClick={openAddModal}>+ Add Bookmark</button>
 
           {isLoading ? (
@@ -102,6 +148,7 @@ function App() {
               onTogglePin={handleTogglePin}
               onToggleArchive={handleToggleArchive}
               currentView={currentView}
+              searchTerm={searchTerm}
             />
           )}
         </main>

@@ -1,0 +1,320 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+button:hover {
+  background-color: var(--hover-bg);
+}
+
+button.active {
+  background-color: var(--accent-color);
+  color: #ffffff;
+  border-color: var(--accent-color);
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  width: 100%;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+/* ===== Theme Variables ===== */
+:root[data-theme="light"] {
+  --bg-color: #ffffff;
+  --text-color: #111111;
+  --card-bg: #f5f5f5;
+  --input-bg: #ffffff;
+  --border-color: #dddddd;
+  --hover-bg: #e9e9e9;
+  --accent-color: #3b82f6;
+  --error-color: #dc2626;
+  --muted-text: #666666;
+}
+
+:root[data-theme="dark"] {
+  --bg-color: #16181c;
+  --text-color: #f0f0f0;
+  --card-bg: #23262b;
+  --input-bg: #1c1f24;
+  --border-color: #3a3d42;
+  --hover-bg: #2c2f35;
+  --accent-color: #60a5fa;
+  --error-color: #f87171;
+  --muted-text: #9a9ea5;
+}
+
+/* ===== App Layout ===== */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.app-header h1 {
+  font-size: 1.3rem;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+}
+
+.sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 16px;
+  border-right: 1px solid var(--border-color);
+}
+
+.sidebar button {
+  text-align: left;
+  width: 100%;
+}
+
+.app-main {
+  flex: 1;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ===== Search / Filter / Sort Row ===== */
+.search-bar {
+  max-width: 400px;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sort-select {
+  max-width: 200px;
+}
+
+/* ===== Bookmark List & Card ===== */
+.bookmark-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.bookmark-card {
+  position: relative;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bookmark-card.pinned {
+  border-color: var(--accent-color);
+}
+
+.pin-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 0.75rem;
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+.bookmark-card h3 {
+  font-size: 1.05rem;
+  padding-right: 70px; /* avoid overlap with pin badge */
+}
+
+.bookmark-card p {
+  font-size: 0.9rem;
+  color: var(--muted-text);
+  word-break: break-word;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.card-actions button {
+  flex: 1;
+  min-width: 70px;
+  font-size: 0.8rem;
+  padding: 6px 8px;
+}
+
+/* ===== Tag List ===== */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+}
+
+.tag {
+  background-color: var(--hover-bg);
+  color: var(--text-color);
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+/* ===== Empty / Loading States ===== */
+.empty-state {
+  text-align: center;
+  color: var(--muted-text);
+  padding: 60px 20px;
+  font-size: 1rem;
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal-content {
+  position: relative;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  padding: 4px 8px;
+}
+
+/* ===== Bookmark Form ===== */
+.bookmark-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-field textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.error {
+  color: var(--error-color);
+  font-size: 0.8rem;
+}
+
+.bookmark-form button[type="submit"] {
+  background-color: var(--accent-color);
+  color: #ffffff;
+  border-color: var(--accent-color);
+  padding: 10px;
+  font-weight: 600;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .app-body {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 16px;
+  }
+
+  .sidebar button {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .app-main {
+    padding: 16px;
+  }
+
+  .bookmark-list {
+    grid-template-columns: 1fr;
+  }
+
+  .search-bar,
+  .sort-select {
+    max-width: 100%;
+  }
+}

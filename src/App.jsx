@@ -7,6 +7,25 @@ import Modal from "./components/Modal";
 import BookmarkForm from "./components/BookmarkForm";
 import ConfirmModal from "./components/ConfirmModal";
 
+const CONFIRM_CONFIG = {
+  archive: {
+    title: "Archive bookmark",
+    message: "Are you sure you want to archive this bookmark?",
+    confirmLabel: "Archive",
+  },
+  unarchive: {
+    title: "Unarchive bookmark",
+    message: "Move this bookmark back to your active list?",
+    confirmLabel: "Unarchive",
+  },
+  delete: {
+    title: "Delete bookmark",
+    message: "Are you sure you want to delete this bookmark?",
+    confirmLabel: "Delete Permanently",
+    destructive: true,
+  },
+};
+
 function App() {
   const [bookmarks, setBookmarks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -17,9 +36,7 @@ function App() {
   const [selectedTag, setSelectedTag] = useState("All");
   const [sortOption, setSortOption] = useState("newest");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [pendingArchiveId, setPendingArchiveId] = useState(null);
-  const [pendingUnarchiveId, setPendingUnarchiveId] = useState(null);
-  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [pendingAction, setPendingAction] = useState(null); // { type: "archive" | "unarchive" | "delete", id }
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light"
   );
@@ -75,68 +92,39 @@ function App() {
     closeModal();
   }
 
-  function performDelete(id) {
-    setBookmarks((prev) => prev.filter((b) => b.id !== id));
-  }
-
-  function handleRequestDelete(id) {
-    setPendingDeleteId(id);
-  }
-
-  function confirmDelete() {
-    if (pendingDeleteId) {
-      performDelete(pendingDeleteId);
-    }
-    setPendingDeleteId(null);
-  }
-
-  function cancelDelete() {
-    setPendingDeleteId(null);
-  }
-
   function handleTogglePin(id) {
     setBookmarks((prev) =>
       prev.map((b) => (b.id === id ? { ...b, pinned: !b.pinned } : b))
     );
   }
 
-  function performToggleArchive(id) {
-    setBookmarks((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, archived: !b.archived } : b))
-    );
-  }
-
   function handleRequestArchiveToggle(id) {
     const bookmark = bookmarks.find((b) => b.id === id);
     if (!bookmark) return;
+    setPendingAction({ type: bookmark.archived ? "unarchive" : "archive", id });
+  }
 
-    if (bookmark.archived) {
-      setPendingUnarchiveId(id);
+  function handleRequestDelete(id) {
+    setPendingAction({ type: "delete", id });
+  }
+
+  function confirmPendingAction() {
+    if (!pendingAction) return;
+    const { type, id } = pendingAction;
+
+    if (type === "delete") {
+      setBookmarks((prev) => prev.filter((b) => b.id !== id));
     } else {
-      setPendingArchiveId(id);
+      setBookmarks((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, archived: !b.archived } : b))
+      );
     }
+
+    setPendingAction(null);
   }
 
-  function confirmArchive() {
-    if (pendingArchiveId) {
-      performToggleArchive(pendingArchiveId);
-    }
-    setPendingArchiveId(null);
-  }
-
-  function cancelArchive() {
-    setPendingArchiveId(null);
-  }
-
-  function confirmUnarchive() {
-    if (pendingUnarchiveId) {
-      performToggleArchive(pendingUnarchiveId);
-    }
-    setPendingUnarchiveId(null);
-  }
-
-  function cancelUnarchive() {
-    setPendingUnarchiveId(null);
+  function cancelPendingAction() {
+    setPendingAction(null);
   }
 
   function openAddModal() {
@@ -181,7 +169,7 @@ function App() {
     selectedTag === "All" ? true : b.tags.includes(selectedTag)
   );
 
-  const sorted = [...tagFiltered].sort((a, b) => {
+  const visibleBookmarks = [...tagFiltered].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
 
     switch (sortOption) {
@@ -207,8 +195,6 @@ function App() {
   const tagsWithCounts = Object.keys(tagCounts)
     .sort()
     .map((name) => ({ name, count: tagCounts[name] }));
-
-  const visibleBookmarks = sorted;
 
   return (
     <div className="app">
@@ -274,34 +260,11 @@ function App() {
         </Modal>
       )}
 
-      {pendingArchiveId && (
+      {pendingAction && (
         <ConfirmModal
-          title="Archive bookmark"
-          message="Are you sure you want to archive this bookmark?"
-          confirmLabel="Archive"
-          onConfirm={confirmArchive}
-          onCancel={cancelArchive}
-        />
-      )}
-
-      {pendingUnarchiveId && (
-        <ConfirmModal
-          title="Unarchive bookmark"
-          message="Move this bookmark back to your active list?"
-          confirmLabel="Unarchive"
-          onConfirm={confirmUnarchive}
-          onCancel={cancelUnarchive}
-        />
-      )}
-
-      {pendingDeleteId && (
-        <ConfirmModal
-          title="Delete bookmark"
-          message="Are you sure you want to delete this bookmark?"
-          confirmLabel="Delete Permanently"
-          destructive
-          onConfirm={confirmDelete}
-          onCancel={cancelDelete}
+          {...CONFIRM_CONFIG[pendingAction.type]}
+          onConfirm={confirmPendingAction}
+          onCancel={cancelPendingAction}
         />
       )}
     </div>

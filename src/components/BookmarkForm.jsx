@@ -2,6 +2,15 @@ import { useState } from "react";
 
 const DESCRIPTION_MAX = 280;
 
+function isValidUrl(value) {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function BookmarkForm({ onSave, onCancel, initialData }) {
   const [form, setForm] = useState({
     title: initialData?.title || "",
@@ -18,21 +27,10 @@ function BookmarkForm({ onSave, onCancel, initialData }) {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function isValidUrl(value) {
-    try {
-      new URL(value);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   function validate() {
     const newErrors = {};
 
-    if (!form.title.trim()) {
-      newErrors.title = "Title is required";
-    }
+    if (!form.title.trim()) newErrors.title = "Title is required";
 
     if (!form.url.trim()) {
       newErrors.url = "URL is required";
@@ -40,14 +38,8 @@ function BookmarkForm({ onSave, onCancel, initialData }) {
       newErrors.url = "Please enter a valid URL";
     }
 
-    const tagList = form.tags
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-
-    if (tagList.length === 0) {
-      newErrors.tags = "At least one tag is required";
-    }
+    const tagList = form.tags.split(",").map((t) => t.trim()).filter(Boolean);
+    if (tagList.length === 0) newErrors.tags = "At least one tag is required";
 
     return { newErrors, tagList };
   }
@@ -56,25 +48,23 @@ function BookmarkForm({ onSave, onCancel, initialData }) {
     e.preventDefault();
 
     const { newErrors, tagList } = validate();
-
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    const bookmarkData = {
-      id: initialData ? initialData.id : crypto.randomUUID(),
+    onSave({
+      pinned: false,
+      archived: false,
+      favorite: false,
+      ...initialData,
+      id: initialData?.id ?? crypto.randomUUID(),
       title: form.title.trim(),
       url: form.url.trim(),
       description: form.description.trim(),
       tags: tagList,
-      pinned: initialData ? initialData.pinned : false,
-      archived: initialData ? initialData.archived : false,
-      favorite: initialData ? initialData.favorite : false,
-      createdAt: initialData ? initialData.createdAt : new Date().toISOString(),
-    };
-
-    onSave(bookmarkData);
+      createdAt: initialData?.createdAt ?? new Date().toISOString(),
+    });
   }
 
   return (
@@ -90,13 +80,7 @@ function BookmarkForm({ onSave, onCancel, initialData }) {
 
       <div className="form-field">
         <label htmlFor="title">Title *</label>
-        <input
-          id="title"
-          type="text"
-          name="title"
-          value={form.title}
-          onChange={handleChange}
-        />
+        <input id="title" name="title" value={form.title} onChange={handleChange} />
         {errors.title && <span className="error">{errors.title}</span>}
       </div>
 
@@ -115,13 +99,7 @@ function BookmarkForm({ onSave, onCancel, initialData }) {
 
       <div className="form-field">
         <label htmlFor="url">Website URL *</label>
-        <input
-          id="url"
-          type="text"
-          name="url"
-          value={form.url}
-          onChange={handleChange}
-        />
+        <input id="url" name="url" value={form.url} onChange={handleChange} />
         {errors.url && <span className="error">{errors.url}</span>}
       </div>
 
@@ -129,7 +107,6 @@ function BookmarkForm({ onSave, onCancel, initialData }) {
         <label htmlFor="tags">Tags *</label>
         <input
           id="tags"
-          type="text"
           name="tags"
           placeholder="e.g. Design, Learning, Tools"
           value={form.tags}

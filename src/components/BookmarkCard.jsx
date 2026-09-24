@@ -19,8 +19,10 @@ function getInitial(title) {
 }
 
 function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+  return new Date(dateString).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+  });
 }
 
 // Not a real analytics number — this app doesn't track views.
@@ -32,6 +34,14 @@ function pseudoViewCount(id) {
     hash = (hash * 31 + id.charCodeAt(i)) % 1000;
   }
   return Math.abs(hash);
+}
+
+function getDomain(url) {
+  try {
+    return new URL(url).hostname.replace("www.", "");
+  } catch {
+    return url;
+  }
 }
 
 function BookmarkCard({ bookmark, onEdit, onDelete, onTogglePin, onToggleArchive }) {
@@ -48,15 +58,8 @@ function BookmarkCard({ bookmark, onEdit, onDelete, onTogglePin, onToggleArchive
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  let domain = "";
-  try {
-    domain = new URL(bookmark.url).hostname.replace("www.", "");
-  } catch {
-    domain = bookmark.url;
-  }
-
-  function handleCopyUrl() {
-    navigator.clipboard.writeText(bookmark.url);
+  function runAndClose(action) {
+    action();
     setMenuOpen(false);
   }
 
@@ -66,7 +69,7 @@ function BookmarkCard({ bookmark, onEdit, onDelete, onTogglePin, onToggleArchive
         <div className="bookmark-favicon">{getInitial(bookmark.title)}</div>
         <div className="bookmark-title-group">
           <h3>{bookmark.title}</h3>
-          <p className="bookmark-domain">{domain}</p>
+          <p className="bookmark-domain">{getDomain(bookmark.url)}</p>
         </div>
 
         <div className="card-menu" ref={menuRef}>
@@ -80,49 +83,28 @@ function BookmarkCard({ bookmark, onEdit, onDelete, onTogglePin, onToggleArchive
 
           {menuOpen && (
             <div className="card-menu-dropdown">
-              
-               <a href={bookmark.url}
+              <a
+                href={bookmark.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setMenuOpen(false)}
               >
                 <ExternalLink size={16} /> Visit
               </a>
-              <button onClick={handleCopyUrl}>
+              <button onClick={() => runAndClose(() => navigator.clipboard.writeText(bookmark.url))}>
                 <Copy size={16} /> Copy URL
               </button>
-              <button
-                onClick={() => {
-                  onTogglePin(bookmark.id);
-                  setMenuOpen(false);
-                }}
-              >
+              <button onClick={() => runAndClose(() => onTogglePin(bookmark.id))}>
                 {bookmark.pinned ? <PinOff size={16} /> : <Pin size={16} />}
                 {bookmark.pinned ? "Unpin" : "Pin"}
               </button>
-              <button
-                onClick={() => {
-                  onEdit(bookmark);
-                  setMenuOpen(false);
-                }}
-              >
+              <button onClick={() => runAndClose(() => onEdit(bookmark))}>
                 <Pencil size={16} /> Edit
               </button>
-              <button
-                onClick={() => {
-                  onToggleArchive(bookmark.id);
-                  setMenuOpen(false);
-                }}
-              >
+              <button onClick={() => runAndClose(() => onToggleArchive(bookmark.id))}>
                 <Archive size={16} /> {bookmark.archived ? "Restore" : "Archive"}
               </button>
-              <button
-                className="menu-delete"
-                onClick={() => {
-                  onDelete(bookmark.id);
-                  setMenuOpen(false);
-                }}
-              >
+              <button className="menu-delete" onClick={() => runAndClose(() => onDelete(bookmark.id))}>
                 <Trash2 size={16} /> Delete
               </button>
             </div>

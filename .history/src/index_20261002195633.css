@@ -488,9 +488,6 @@ input.search-bar {
   font-size: 0.9rem;
   color: var(--muted-text);
   line-height: 1.5;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .tag-list {

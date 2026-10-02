@@ -21,7 +21,7 @@ function getInitial(title) {
 function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString("en-US", {
     day: "numeric",
-    month: "short",
+    month: "long",
   });
 }
 
@@ -68,7 +68,7 @@ function BookmarkCard({ bookmark, onEdit, onDelete, onTogglePin, onToggleArchive
       <div className="bookmark-card-header">
         <div className="bookmark-favicon">{getInitial(bookmark.title)}</div>
         <div className="bookmark-title-group">
-          <h3 title={bookmark.title}>{bookmark.title}</h3>
+          <h3>{bookmark.title}</h3>
           <p className="bookmark-domain">{getDomain(bookmark.url)}</p>
         </div>
 
@@ -114,9 +114,7 @@ function BookmarkCard({ bookmark, onEdit, onDelete, onTogglePin, onToggleArchive
 
       <div className="bookmark-divider" />
 
-      <p className="description" title={bookmark.description}>
-        {bookmark.description}
-      </p>
+      <p className="description">{bookmark.description}</p>
 
       <TagList tags={bookmark.tags} />
 
